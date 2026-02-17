@@ -62,6 +62,8 @@ pipeline {
                 sh """
                     echo "Building: ${CI_IMAGE}"
 
+                    docker ps
+
                     docker build \\
                         --tag ${CI_IMAGE} \\
                         --file Dockerfile \\
