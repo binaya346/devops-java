@@ -51,14 +51,13 @@ pipeline {
           stage('🔍 Code Quality') {
               agent {
                   docker {
-                      image 'maven:3.9-eclipse-temurin-21'
-                      args '-v maven-cache:/root/.m2'
+                      image 'eclipse-temurin:25-jdk-alpine'
                       reuseNode true
                   }
               }
               steps {
                   withSonarQubeEnv('SonarQube') {
-                      sh 'mvn -B compile sonar:sonar'
+                      sh './mvnw -B compile sonar:sonar'
                   }
               }
           }
