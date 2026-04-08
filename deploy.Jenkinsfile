@@ -20,7 +20,7 @@ pipeline {
 
     environment {
         // Application configuration
-        APP_NAME        = 'devops-java'
+        APP_NAME        = 'laravel-devops'
         
         // Use Jenkins built-in Git commit SHA
         IMAGE_TAG       = "${env.GIT_COMMIT.take(7)}"
@@ -29,10 +29,10 @@ pipeline {
         DEPLOY_SERVER   = '185.199.53.175'
         DEPLOY_USER     = 'jenkins'
         DEPLOY_PORT     = '22'
-        APP_PORT        = '8080'
+        APP_PORT        = '9000'
         
         // .env file path on production server
-        ENV_FILE        = '/home/jenkins/.env'
+        ENV_FILE        = '/home/jenkins/.laravel.env'
     }
 
     stages {
@@ -181,7 +181,7 @@ pipeline {
                                         --restart unless-stopped \\
                                         --network private-net \\
                                         --env-file ${ENV_FILE} \\
-                                        -p ${APP_PORT}:8080 \\
+                                        -p ${APP_PORT}:${APP_PORT} \\
                                         \${DOCKER_IMAGE}:${IMAGE_TAG}
                                     
                                     # Verify

@@ -1,11 +1,6 @@
 pipeline {
 
-    agent {
-        docker {
-            image 'docker:cli'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '10'))
@@ -50,13 +45,59 @@ pipeline {
         }
 
         stage('🔍 Code Quality') {
-            steps {
-                sh '''
-                    echo "Running code quality checks..."
-                    echo "✅ Code quality passed"
-                '''
-            }
+            agent {
+                docker {                                                                                                                 
+                    image 'sonarsource/sonar-scanner-cli:latest'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'                                                                  
+                }       
+            }                                                                                                                            
+            steps {     
+                withSonarQubeEnv('SonarQube') {
+                    sh """                                                                                                               
+                        sonar-scanner \
+                            -Dsonar.projectKey=java-app \                                                                                  
+                            -Dsonar.sources=. \
+                            -Dsonar.exclusions=**/target/**,**/node_modules/**                                                             
+                    """
+                }                                                                                                                        
+            }           
         }
+
+        stage('✅ Quality Gate') {                                                                                                       
+            agent {
+                docker {                                                                                                                 
+                    image 'sonarsource/sonar-scanner-cli:latest'
+                }
+            }
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true                                                                               
+                }
+            }                                                                                                                            
+        }
+
+        // stage('🔍 Code Quality') {                                                                                               
+        //       // Override the docker agent — run on the Jenkins node directly
+        //       // so sonar-scanner (installed via Jenkins Tools) is available                                                       
+        //       agent { label 'built-in' }   // or 'any' if you have one node                                                        
+        //       environment {                                                                                                        
+        //           SCANNER_HOME = tool 'sonar-scanner'                                                                              
+        //       }                                                                                                                    
+        //       steps {
+        //           withSonarQubeEnv('SonarQube') {                                                                                  
+        //               sh "${SCANNER_HOME}/bin/sonar-scanner"
+        //           }                                                                                                                
+        //       }
+        //   }                                                                                                                        
+                  
+        //   stage('✅ Quality Gate') {
+        //       agent { label 'built-in' }
+        //       steps {
+        //           timeout(time: 5, unit: 'MINUTES') {
+        //               waitForQualityGate abortPipeline: true                                                                       
+        //           }
+        //       }                                                                                                                    
+        //   } 
 
         stage('🐳 Docker Build') {
             steps {
