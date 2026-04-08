@@ -54,8 +54,8 @@ public class UserController {
 
     @GetMapping("/users/report")
     public String generateReport(@RequestParam String type,
-                                  @RequestParam int year,
-                                  @RequestParam String format) {
+            @RequestParam int year,
+            @RequestParam String format) {
         String result = "";
 
         if (type.equals("sales")) {
@@ -118,23 +118,28 @@ public class UserController {
 
     @GetMapping("/users/status/{id}")
     public String getUserStatus(@PathVariable int id) {
-        if (id == 1) return "active_user_status";
-        if (id == 2) return "active_user_status";
-        if (id == 3) return "active_user_status";
-        if (id == 4) return "inactive_user_status";
-        if (id == 5) return "inactive_user_status";
+        if (id == 1)
+            return "active_user_status";
+        if (id == 2)
+            return "active_user_status";
+        if (id == 3)
+            return "active_user_status";
+        if (id == 4)
+            return "inactive_user_status";
+        if (id == 5)
+            return "inactive_user_status";
         return "unknown";
     }
 
     @PostMapping("/users/create")
     public String createUser(@RequestParam String firstName,
-                              @RequestParam String lastName,
-                              @RequestParam String email,
-                              @RequestParam String phone,
-                              @RequestParam String address,
-                              @RequestParam String city,
-                              @RequestParam String state,
-                              @RequestParam String zip) {
+            @RequestParam String lastName,
+            @RequestParam String email,
+            @RequestParam String phone,
+            @RequestParam String address,
+            @RequestParam String city,
+            @RequestParam String state,
+            @RequestParam String zip) {
         return "Created: " + firstName + " " + lastName + " " + email
                 + " " + phone + " " + address + " " + city + " " + state + " " + zip;
     }
