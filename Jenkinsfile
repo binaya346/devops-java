@@ -48,32 +48,27 @@ pipeline {
               }   
           }                                                                                                                        
    
-          stage('🔍 Code Quality') {                                                                                               
+          stage('🔍 Code Quality') {
               agent {
                   docker {
-                      image 'sonarsource/sonar-scanner-cli:latest'
+                      image 'maven:3.9-eclipse-temurin-21'
+                      args '-v maven-cache:/root/.m2'
                       reuseNode true
                   }
               }
-              steps {                                                                                                              
+              steps {
                   withSonarQubeEnv('SonarQube') {
-                      sh 'sonar-scanner'                                                                                           
+                      sh 'mvn -B compile sonar:sonar'
                   }
               }
           }
 
           stage('✅ Quality Gate') {
-              agent {
-                  docker {                                                                                                         
-                      image 'sonarsource/sonar-scanner-cli:latest'
-                      reuseNode true                                                                                               
-                  }
-              }
               steps {
                   timeout(time: 5, unit: 'MINUTES') {
-                      waitForQualityGate abortPipeline: true                                                                       
+                      waitForQualityGate abortPipeline: true
                   }
-              }                                                                                                                    
+              }
           }       
 
           stage('🐳 Docker Build') {                                                                                               
