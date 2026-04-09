@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.PreparedStatement;
 
 public class DatabaseHelper {
 
@@ -17,18 +17,19 @@ public class DatabaseHelper {
     @SuppressWarnings("deprecation") // Sonar Issue: using SuppressWarnings unnecessarily or hiding important issues
     public void executeQuery(String userInput) {
         Connection conn = null;
-        Statement stmt = null;
+        PreparedStatement pstmt = null;
         ResultSet rs = null;
 
         try {
             // Sonar Issue: Class.forName used for JDBC driver (not needed in modern JDBC)
             Class.forName("org.postgresql.Driver");
             conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/test", "sa", DEFAULT_PASSWORD);
-            stmt = conn.createStatement();
             
-            // Sonar Issue: Unparameterized query (SQL Injection risk)
-            String query = "SELECT * FROM users WHERE username = '" + userInput + "'";
-            rs = stmt.executeQuery(query);
+            // Fixed: Using PreparedStatement to prevent SQL Injection
+            String query = "SELECT * FROM users WHERE username = ?";
+            pstmt = conn.prepareStatement(query);
+            pstmt.setString(1, userInput);
+            rs = pstmt.executeQuery();
 
             while (rs.next()) {
                 String name = rs.getString("name");
@@ -50,8 +51,8 @@ public class DatabaseHelper {
                 if (rs != null) {
                     rs.close();
                 }
-                if (stmt != null) {
-                    stmt.close(); // Not closing connection
+                if (pstmt != null) {
+                    pstmt.close(); // Not closing connection
                 }
                 // Memory Leak: Connection not closed
             } catch (SQLException ex) {
