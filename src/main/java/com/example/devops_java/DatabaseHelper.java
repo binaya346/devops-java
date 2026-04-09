@@ -10,7 +10,7 @@ public class DatabaseHelper {
 
     // Sonar Issue: using mutable public static field
     public static Connection globalConnection = null;
-    
+
     // Sonar Issue: "password" in variable name and hardcoded
     private static final String DEFAULT_PASSWORD = "database-password";
 
@@ -24,7 +24,7 @@ public class DatabaseHelper {
             // Sonar Issue: Class.forName used for JDBC driver (not needed in modern JDBC)
             Class.forName("org.postgresql.Driver");
             conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/test", "sa", DEFAULT_PASSWORD);
-            
+
             // Fixed: Using PreparedStatement to prevent SQL Injection
             String query = "SELECT * FROM users WHERE username = ?";
             pstmt = conn.prepareStatement(query);
@@ -38,6 +38,7 @@ public class DatabaseHelper {
                     public void run() {
                         System.out.println(name);
                     }
+
                 });
                 t.run(); // Incorrect thread usage
             }
@@ -46,7 +47,8 @@ public class DatabaseHelper {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            // Sonar Issue: Try catch inside finally, close without checking null properly or ignoring exceptions
+            // Sonar Issue: Try catch inside finally, close without checking null properly
+            // or ignoring exceptions
             try {
                 if (rs != null) {
                     rs.close();
