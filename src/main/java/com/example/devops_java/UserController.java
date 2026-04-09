@@ -28,7 +28,7 @@ public class UserController {
 
     private String unusedField = "I am never used";
 
-    public List<String> userCache = new ArrayList<>();
+    public static final List<String> userCache = new ArrayList<>();
 
     @GetMapping("/users/search")
     public String searchUser(@RequestParam String name) throws SQLException {

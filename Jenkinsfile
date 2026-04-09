@@ -46,7 +46,7 @@ pipeline {
                       echo "✅ Environment ready"
                   '''                                                                                                              
               }   
-          }                                                                                                                        
+          }                                                                                                                         
    
           stage('🔍 Code Quality') {
               agent {
