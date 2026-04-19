@@ -33,7 +33,7 @@ pipeline {
         NEXUS_URL       = "host.docker.internal:8082"
         
         // .env file path on production server
-        ENV_FILE        = '/home/jenkins/.laravel.env'
+        ENV_FILE        = '/home/jenkins/.env'
     }
 
     stages {
