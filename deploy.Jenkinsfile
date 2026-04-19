@@ -20,7 +20,7 @@ pipeline {
 
     environment {
         // Application configuration
-        APP_NAME        = 'laravel-devops'
+        APP_NAME        = 'java-devops'
         
         // Use Jenkins built-in Git commit SHA
         IMAGE_TAG       = "${env.GIT_COMMIT.take(7)}"
@@ -29,7 +29,8 @@ pipeline {
         DEPLOY_SERVER   = '185.199.53.175'
         DEPLOY_USER     = 'jenkins'
         DEPLOY_PORT     = '22'
-        APP_PORT        = '9000'
+        APP_PORT        = '8080'
+        NEXUS_URL       = "host.docker.internal:8082"
         
         // .env file path on production server
         ENV_FILE        = '/home/jenkins/.laravel.env'
@@ -59,14 +60,14 @@ pipeline {
                 script {
                     withCredentials([
                         usernamePassword(
-                            credentialsId: 'dockerhub-credentials',
+                            credentialsId: 'nexus-credentials',
                             usernameVariable: 'DOCKER_USERNAME',
                             passwordVariable: 'DOCKER_PASSWORD'
                         )
                     ]) {
                         sh """
                             # Build image with DockerHub username from credentials
-                            DOCKER_IMAGE="\${DOCKER_USERNAME}/${APP_NAME}"
+                            DOCKER_IMAGE="\${NEXUS_URL}/${APP_NAME}"
                             
                             echo "Building: \${DOCKER_IMAGE}:${IMAGE_TAG}"
                             
@@ -89,13 +90,13 @@ pipeline {
                 script {
                     withCredentials([
                         usernamePassword(
-                            credentialsId: 'dockerhub-credentials',
+                            credentialsId: 'nexus-credentials',
                             usernameVariable: 'DOCKER_USERNAME',
                             passwordVariable: 'DOCKER_PASSWORD'
                         )
                     ]) {
                         sh """
-                            DOCKER_IMAGE="\${DOCKER_USERNAME}/${APP_NAME}"
+                            DOCKER_IMAGE="\${NEXUS_URL}/${APP_NAME}"
                             
                             CONTAINER_UID=\$(docker run --rm --entrypoint id \${DOCKER_IMAGE}:${IMAGE_TAG} -u)
                             
@@ -116,13 +117,13 @@ pipeline {
                 script {
                     withCredentials([
                         usernamePassword(
-                            credentialsId: 'dockerhub-credentials',
+                            credentialsId: 'nexus-credentials',
                             usernameVariable: 'DOCKER_USERNAME',
                             passwordVariable: 'DOCKER_PASSWORD'
                         )
                     ]) {
                         sh """
-                            DOCKER_IMAGE="\${DOCKER_USERNAME}/${APP_NAME}"
+                            DOCKER_IMAGE="\${NEXUS_URL}/${APP_NAME}"
                             
                             echo "Logging in to DockerHub..."
                             echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
@@ -146,14 +147,14 @@ pipeline {
                 script {
                     withCredentials([
                         usernamePassword(
-                            credentialsId: 'dockerhub-credentials',
+                            credentialsId: 'nexus-credentials',
                             usernameVariable: 'DOCKER_USERNAME',
                             passwordVariable: 'DOCKER_PASSWORD'
                         )
                     ]) {
                         sshagent(['deployment-server-ssh']) {
                             sh """
-                                DOCKER_IMAGE="\${DOCKER_USERNAME}/${APP_NAME}"
+                                DOCKER_IMAGE="\${NEXUS_URL}/${APP_NAME}"
                                 
                                 echo "=== Deploying to Production ==="
                                 echo "Server: ${DEPLOY_SERVER}"
@@ -238,13 +239,13 @@ ENDSSH
                 script {
                     withCredentials([
                         usernamePassword(
-                            credentialsId: 'dockerhub-credentials',
+                            credentialsId: 'nexus-credentials',
                             usernameVariable: 'DOCKER_USERNAME',
                             passwordVariable: 'DOCKER_PASSWORD'
                         )
                     ]) {
                         sh """
-                            DOCKER_IMAGE="\${DOCKER_USERNAME}/${APP_NAME}"
+                            DOCKER_IMAGE="\${NEXUS_URL}/${APP_NAME}"
                             docker rmi \${DOCKER_IMAGE}:${IMAGE_TAG} || true
                             docker rmi \${DOCKER_IMAGE}:latest || true
                             docker image prune -f || true
@@ -261,7 +262,7 @@ ENDSSH
             script {
                 withCredentials([
                     usernamePassword(
-                        credentialsId: 'dockerhub-credentials',
+                        credentialsId: 'nexus-credentials',
                         usernameVariable: 'DOCKER_USERNAME',
                         passwordVariable: 'DOCKER_PASSWORD'
                     )
@@ -270,7 +271,7 @@ ENDSSH
 ╔══════════════════════════════════════════════════════╗
 ║       🚀 DEPLOYMENT SUCCESSFUL - PRODUCTION LIVE     ║
 ╚══════════════════════════════════════════════════════╝
-   Image      : \${DOCKER_USERNAME}/${APP_NAME}:${IMAGE_TAG}
+   Image      : \${NEXUS_URL}/${APP_NAME}:${IMAGE_TAG}
    Commit SHA : ${IMAGE_TAG}
    Server     : ${DEPLOY_SERVER}
    Port       : ${APP_PORT}
